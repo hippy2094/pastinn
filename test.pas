@@ -11,7 +11,7 @@ type
     nops: Integer;
     rows: Integer;
   end;
-  
+
 function explode(cDelimiter,  sValue : string; iCount : integer) : TArray;
 var
   s : string;
@@ -90,7 +90,7 @@ begin
   writeln('Sample file loaded');
   Result := InitData(nips, nops, t.Count);
   writeln('Data initialised');
-  for row := 0 to t.Count-1 do 
+  for row := 0 to t.Count-1 do
   begin
     parse(Result,t[row],row);
   end;
@@ -120,7 +120,6 @@ begin
   writeln(data.rows);
   for i := 0 to iterations-1 do
   begin
-    writeln(i,' out of ', iterations);
     shuffle(data);
     error := 0.00;
     for j := 0 to data.rows -1 do
@@ -128,12 +127,11 @@ begin
       inp := data.inp[j];
       tg := data.tg[j];
       error += xttrain(tinn, inp, tg, rate);
-      //writeln('error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
-      rate *= anneal;
     end;
-    writeln('Done');
+    writeln('error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
+    rate *= anneal;
   end;
-  // Skip saving and loading for time being
+  xtsave(tinn,'data.tinn');
   inp := data.inp[0];
   tg := data.tg[0];
   pd := xtpredict(tinn, inp);
