@@ -192,7 +192,9 @@ function xtload(path: String): TfpcTinn;
 var
   F: TextFile;
   i, nips, nhid, nops: Integer;
-  l: String;
+  //l: String;
+  l: Single;
+  s: String;
 begin
   AssignFile(F,path);
   Reset(F);
@@ -200,18 +202,20 @@ begin
   nhid := 0;
   nops := 0;
   // Read header
-  Readln(F,l);
-  sscanf(l,'%d %d %d',[@nips, @nhid, @nops]);
+  Readln(F,s);
+  sscanf(s,'%d %d %d',[@nips, @nhid, @nops]);
   Result := xtbuild(nips, nhid, nops);
   for i := 0 to Result.nb-1 do
   begin
     Readln(F,l);
-    Result.b[i] := StrToFloat(l);
+    //Result.b[i] := StrToFloat(l);
+    Result.b[i] := l;
   end;
   for i := 0 to Result.nw-1 do
   begin
     Readln(F,l);
-    Result.w[i] := StrToFloat(l);
+    //Result.w[i] := StrToFloat(l);
+    Result.w[i] := l;
   end;
   CloseFile(F);
 end;
