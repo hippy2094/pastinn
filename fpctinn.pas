@@ -76,12 +76,6 @@ begin
   Result := a * (1.0 - a);
 end;
 
-// Returns floating point random from 0.0 - 1.0.
-function frand: Single;
-begin
-  Result := Random;
-end;
-
 // Performs back propagation
 procedure bprop(var t: TfpcTinn; inp: TSingleArray; tg: TSingleArray; rate: Single);
 var
@@ -141,8 +135,8 @@ procedure wbrand(var t: TfpcTinn);
 var
   i: Integer;
 begin
-  for i := 0 to t.nw-1 do t.w[i] := frand - 0.5;
-  for i := 0 to t.nb-1 do t.b[i] := frand - 0.5;
+  for i := 0 to t.nw-1 do t.w[i] := Random - 0.5;
+  for i := 0 to t.nb-1 do t.b[i] := Random - 0.5;
 end;
 
 // Returns an output prediction given an input
