@@ -179,11 +179,11 @@ begin
   writeln(F,tinn.nips,' ',tinn.nhid,' ',tinn.nops);
   for i := 0 to tinn.nb-1 do
   begin
-    writeln(F,tinn.b[i]:3:8);
+    writeln(F,tinn.b[i]:1:6);
   end;
   for i := 0 to tinn.nw-1 do
   begin
-    writeln(F,tinn.w[i]:3:8);
+    writeln(F,tinn.w[i]:1:6);
   end;
   CloseFile(F);
 end;
@@ -206,12 +206,12 @@ begin
   for i := 0 to Result.nb-1 do
   begin
     Readln(F,l);
-    sscanf(l,'%f',[@Result.b[i]]);
+    Result.b[i] := StrToFloat(l);
   end;
   for i := 0 to Result.nw-1 do
   begin
     Readln(F,l);
-    sscanf(l,'%f',[@Result.w[i]]);
+    Result.w[i] := StrToFloat(l);
   end;
   CloseFile(F);
 end;

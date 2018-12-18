@@ -125,6 +125,7 @@ begin
     rate *= anneal;
   end;
   xtsave(tinn,'data.tinn');
+  //tinn := xtload('data.tinn');
   inp := data.inp[0];
   tg := data.tg[0];
   pd := xtpredict(tinn, inp);
