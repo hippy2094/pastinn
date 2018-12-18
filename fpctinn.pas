@@ -159,7 +159,6 @@ begin
   Result.nb := 2;
   Result.nw := nhid * (nips + nops);
   SetLength(Result.w,Result.nw);
-  //Result.x := High(Result.w) + nhid * nips;
   SetLength(Result.x,(High(Result.w) + nhid * nips));
   SetLength(Result.b,Result.nb);
   SetLength(Result.h,nhid);

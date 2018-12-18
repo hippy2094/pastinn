@@ -84,17 +84,13 @@ var
   t: TStrings;
   row: Integer;
 begin
-  writeln('Begin!');
   t := TStringList.Create;
   t.LoadFromFile('semeion.data');
-  writeln('Sample file loaded');
   Result := InitData(nips, nops, t.Count);
-  writeln('Data initialised');
   for row := 0 to t.Count-1 do
   begin
     parse(Result,t[row],row);
   end;
-  writeln('Data parsed');
   t.Free;
 end;
 
@@ -114,10 +110,7 @@ begin
   anneal := 0.99;
   iterations := 128;
   data := build(nips, nops);
-  writeln('Building NN');
   tinn := xtbuild(nips, nhid, nops);
-  writeln('Training!');
-  writeln(data.rows);
   for i := 0 to iterations-1 do
   begin
     shuffle(data);
