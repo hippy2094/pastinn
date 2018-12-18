@@ -1,6 +1,6 @@
 unit fpctinn;
 
-{$mode objfpc}{$H+}
+{$mode delphi}{$H+}
 
 interface
 
@@ -10,15 +10,15 @@ type
   TSingleArray = array of Single;
   TfpcTinn = record
     // All the weights.
-    w: array of Single;
+    w: TSingleArray;
     // Hidden to output layer weights.
-    x: array of Single;
+    x: TSingleArray;
     // Biases.
-    b: array of Single;
+    b: TSingleArray;
     // Hidden layer.
-    h: array of Single;
+    h: TSingleArray;
     // Output layer.
-    o: array of Single;
+    o: TSingleArray;
     // Number of biases - always two - Tinn only supports a single hidden layer.
     nb: Integer;
     // Number of weights.
@@ -28,46 +28,17 @@ type
     // Number of hidden neurons.
     nhid: Integer;
     // Number of outputs.
-    nops: Integer;    
+    nops: Integer;
   end;
-  
-function xtpredict(tinn: TFpcTinn; inp: TSingleArray): TSingleArray;
-function xttrain(tinn: TfpcTinn; inp: TSingleArray; tg: TSingleArray; rate: Single): Single;
+
+function xtpredict(var tinn: TFpcTinn; inp: TSingleArray): TSingleArray;
+function xttrain(var tinn: TfpcTinn; inp: TSingleArray; tg: TSingleArray; rate: Single): Single;
 function xtbuild(nips: Integer; nhid: Integer; nops: Integer): TfpcTinn;
-function xtsave(tinn: TfpcTinn; path: String): Boolean;
+procedure xtsave(tinn: TfpcTinn; path: String);
 function xtload(path: String): TfpcTinn;
-procedure xtfree(var tinn: TfpcTinn);
 procedure xtprint(arr: TSingleArray; size: Integer);
-  
+
 implementation
-
-function xtpredict(tinn: TFpcTinn; inp: TSingleArray): TSingleArray;
-begin
-end;
-
-function xttrain(tinn: TfpcTinn; inp: TSingleArray; tg: TSingleArray; rate: Single): Single;
-begin
-end;
-
-function xtbuild(nips: Integer; nhid: Integer; nops: Integer): TfpcTinn;
-begin
-end;
-
-function xtsave(tinn: TfpcTinn; path: String): Boolean;
-begin
-end;
-
-function xtload(path: String): TfpcTinn;
-begin
-end;
-
-procedure xtfree(var tinn: TfpcTinn);
-begin
-end;
-
-procedure xtprint(arr: TSingleArray; size: Integer);
-begin
-end;
 
 // Computes error
 function err(a: Single; b: Single): Single;
@@ -87,7 +58,7 @@ var
   i: Integer;
 begin
   Result := 0.00;
-  for i := 0 to size do
+  for i := 0 to size-1 do
   begin
     Result := Result + err(tg[i], o[i]);
   end;
@@ -109,6 +80,158 @@ end;
 function frand: Single;
 begin
   Result := Random;
-end; 
+end;
+
+// Performs back propagation
+procedure bprop(var t: TfpcTinn; inp: TSingleArray; tg: TSingleArray; rate: Single);
+var
+  i,j: Integer;
+  a,b,sum: Single;
+begin
+  for i := 0 to t.nhid-1 do
+  begin
+    sum := 0.00;
+    // Calculate total error change with respect to output
+    for j := 0 to t.nops-1 do
+    begin
+      a := pderr(t.o[j], tg[j]);
+      b := pdact(t.o[j]);
+      sum += a * b * t.x[j * t.nhid + i];
+      // Correct weights in hidden to output layer
+      t.x[j * t.nhid + i] -= rate * a * b * t.h[i];
+    end;
+    // Correct weights in input to hidden layer
+    for j := 0 to t.nips-1 do
+    begin
+      t.w[i * t.nips + j] -= rate * sum * pdact(t.h[i]) * inp[j];
+    end;
+  end;
+end;
+
+// Performs forward propagation
+procedure fprop(var t: TfpcTinn; inp: TSingleArray);
+var
+  i,j: Integer;
+  sum: Single;
+begin
+  // Calculate hidden layer neuron values
+  for i := 0 to t.nhid-1 do
+  begin
+    sum := 0.00;
+    for j := 0 to t.nips-1 do
+    begin
+      sum += inp[j] * t.w[i * t.nips + j];
+    end;
+    t.h[i] := act(sum + t.b[0]);
+  end;
+  // Calculate output layer neuron values
+  for i := 0 to t.nops-1 do
+  begin
+    sum := 0.00;
+    for j := 0 to t.nhid-1 do
+    begin
+      sum += t.h[j] * t.x[i * t.nhid + j];
+    end;
+    t.o[i] := act(sum + t.b[1]);
+  end;
+end;
+
+// Randomizes tinn weights and biases
+procedure wbrand(var t: TfpcTinn);
+var
+  i: Integer;
+begin
+  for i := 0 to t.nw-1 do t.w[i] := frand - 0.5;
+  for i := 0 to t.nb-1 do t.b[i] := frand - 0.5;
+end;
+
+// Returns an output prediction given an input
+function xtpredict(var tinn: TFpcTinn; inp: TSingleArray): TSingleArray;
+begin
+  fprop(tinn, inp);
+  Result := tinn.o;
+end;
+
+// Trains a tinn with an input and target output with a learning rate. Returns target to output error
+function xttrain(var tinn: TfpcTinn; inp: TSingleArray; tg: TSingleArray; rate: Single): Single;
+begin
+  fprop(tinn, inp);
+  bprop(tinn, inp, tg, rate);
+  Result := toterr(tg, tinn.o, tinn.nops);
+end;
+
+function xtbuild(nips: Integer; nhid: Integer; nops: Integer): TfpcTinn;
+begin
+  Result.nb := 2;
+  Result.nw := nhid * (nips + nops);
+  SetLength(Result.w,Result.nw);
+  //Result.x := High(Result.w) + nhid * nips;
+  SetLength(Result.x,(High(Result.w) + nhid * nips));
+  SetLength(Result.b,Result.nb);
+  SetLength(Result.h,nhid);
+  SetLength(Result.o,nops);
+  Result.nips := nips;
+  Result.nhid := nhid;
+  Result.nops := nops;
+  wbrand(Result);
+end;
+
+procedure xtsave(tinn: TfpcTinn; path: String);
+var
+  F: TextFile;
+  i: Integer;
+begin
+  AssignFile(F,path);
+  Rewrite(F);
+  writeln(F,tinn.nips,' ',tinn.nhid,' ',tinn.nops);
+  for i := 0 to tinn.nb-1 do
+  begin
+    writeln(F,tinn.b[i]:3:8);
+  end;
+  for i := 0 to tinn.nw-1 do
+  begin
+    writeln(F,tinn.w[i]:3:8);
+  end;
+  CloseFile(F);
+end;
+
+function xtload(path: String): TfpcTinn;
+var
+  F: TextFile;
+  i, nips, nhid, nops: Integer;
+  l: String;
+begin
+  AssignFile(F,path);
+  Reset(F);
+  nips := 0;
+  nhid := 0;
+  nops := 0;
+  // Read header
+  Readln(F,l);
+  sscanf(l,'%d %d %d',[@nips, @nhid, @nops]);
+  Result := xtbuild(nips, nhid, nops);
+  for i := 0 to Result.nb-1 do
+  begin
+    Readln(F,l);
+    sscanf(l,'%f',[@Result.b[i]]);
+  end;
+  for i := 0 to Result.nw-1 do
+  begin
+    Readln(F,l);
+    sscanf(l,'%f',[@Result.w[i]]);
+  end;
+  CloseFile(F);
+end;
+
+procedure xtprint(arr: TSingleArray; size: Integer);
+var
+  i: Integer;
+begin
+  for i := 0 to size-1 do
+  begin
+    write(arr[i]:1:8,' ');
+  end;
+  writeln;
+end;
 
 end.
