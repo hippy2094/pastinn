@@ -25,18 +25,18 @@ type
   TTinyNN = class(TObject)
     private
       FTinn: TpasTinn;
-      function err(a: Single; b: Single): Single;
-      function pderr(a: Single; b: Single): Single;
-      function toterr(tg: TSingleArray; o: TSingleArray; size: Integer): Single;
-      function act(a: Single): Single;
-      function pdact(a: Single): Single;
-      procedure bprop(inp: TSingleArray; tg: TSingleArray; rate: Single);
-      procedure fprop(inp: TSingleArray);
+      function err(const a: Single; const b: Single): Single;
+      function pderr(const a: Single; const b: Single): Single;
+      function toterr(const tg: TSingleArray; const o: TSingleArray; const size: Integer): Single;
+      function act(const a: Single): Single;
+      function pdact(const a: Single): Single;
+      procedure bprop(const inp: TSingleArray; const tg: TSingleArray; const rate: Single);
+      procedure fprop(const inp: TSingleArray);
       procedure wbrand;
     public
-      function Train(inp: TSingleArray; tg: TSingleArray; rate: Single): Single;
+      function Train(const inp: TSingleArray; const tg: TSingleArray; const rate: Single): Single;
       procedure Build(nips: Integer; nhid: Integer; nops: Integer);
-      function Predict(inp: TSingleArray): TSingleArray;
+      function Predict(const inp: TSingleArray): TSingleArray;
       procedure SaveToFile(path: String);
       procedure LoadFromFile(path: String);
       procedure PrintToScreen(arr: TSingleArray; size: Integer);
@@ -47,19 +47,19 @@ implementation
 { TTinyNN }
 
 // Computes error
-function TTinyNN.err(a: Single; b: Single): Single;
+function TTinyNN.err(const a: Single; const b: Single): Single;
 begin
   Result := 0.5 * (a - b) * (a - b);
 end;
 
 // Returns partial derivative of error function.
-function TTinyNN.pderr(a: Single; b: Single): Single;
+function TTinyNN.pderr(const a: Single; const b: Single): Single;
 begin
   Result := a - b;
 end;
 
 // Computes total error of target to output.
-function TTinyNN.toterr(tg: TSingleArray; o: TSingleArray; size: Integer): Single;
+function TTinyNN.toterr(const tg: TSingleArray; const o: TSingleArray; const size: Integer): Single;
 var
   i: Integer;
 begin
@@ -71,19 +71,19 @@ begin
 end;
 
 // Activation function.
-function TTinyNN.act(a: Single): Single;
+function TTinyNN.act(const a: Single): Single;
 begin
   Result := 1.0 / (1.0 + exp(-a));
 end;
 
 // Returns partial derivative of activation function.
-function TTinyNN.pdact(a: Single): Single;
+function TTinyNN.pdact(const a: Single): Single;
 begin
   Result := a * (1.0 - a);
 end;
 
 // Performs back propagation
-procedure TTinyNN.bprop(inp: TSingleArray; tg: TSingleArray; rate: Single);
+procedure TTinyNN.bprop(const inp: TSingleArray; const tg: TSingleArray; const rate: Single);
 var
   i,j,z: Integer;
   a,b,sum: Single;
@@ -111,7 +111,7 @@ begin
 end;
 
 // Performs forward propagation
-procedure TTinyNN.fprop(inp: TSingleArray);
+procedure TTinyNN.fprop(const inp: TSingleArray);
 var
   i,j,z: Integer;
   sum: Single;
@@ -150,14 +150,14 @@ begin
 end;
 
 // Returns an output prediction given an input
-function TTinyNN.Predict(inp: TSingleArray): TSingleArray;
+function TTinyNN.Predict(const inp: TSingleArray): TSingleArray;
 begin
   fprop(inp);
   Result := FTinn.o;
 end;
 
 // Trains a tinn with an input and target output with a learning rate. Returns target to output error
-function TTinyNN.Train(inp: TSingleArray; tg: TSingleArray; rate: Single): Single;
+function TTinyNN.Train(const inp: TSingleArray; const tg: TSingleArray; const rate: Single): Single;
 begin
   fprop(inp);
   bprop(inp, tg, rate);
