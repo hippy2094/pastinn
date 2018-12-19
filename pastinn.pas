@@ -85,7 +85,7 @@ end;
 // Performs back propagation
 procedure TTinyNN.bprop(inp: TSingleArray; tg: TSingleArray; rate: Single);
 var
-  i,j: Integer;
+  i,j,z: Integer;
   a,b,sum: Single;
 begin
   for i := 0 to FTinn.nhid-1 do
@@ -96,14 +96,16 @@ begin
     begin
       a := pderr(FTinn.o[j], tg[j]);
       b := pdact(FTinn.o[j]);
-      sum := sum + a * b * FTinn.x[j * FTinn.nhid + i];
+      z := j * FTinn.nhid + i;
+      sum := sum + a * b * FTinn.x[z];
       // Correct weights in hidden to output layer
-      FTinn.x[j * FTinn.nhid + i] := FTinn.x[j * FTinn.nhid + i] - rate * a * b * FTinn.h[i];
+      FTinn.x[z] := FTinn.x[z] - rate * a * b * FTinn.h[i];
     end;
     // Correct weights in input to hidden layer
     for j := 0 to FTinn.nips-1 do
     begin
-      FTinn.w[i * FTinn.nips + j] := FTinn.w[i * FTinn.nips + j] - rate * sum * pdact(FTinn.h[i]) * inp[j];
+      z := i * FTinn.nips + j;
+      FTinn.w[z] := FTinn.w[z] - rate * sum * pdact(FTinn.h[i]) * inp[j];
     end;
   end;
 end;
@@ -111,7 +113,7 @@ end;
 // Performs forward propagation
 procedure TTinyNN.fprop(inp: TSingleArray);
 var
-  i,j: Integer;
+  i,j,z: Integer;
   sum: Single;
 begin
   // Calculate hidden layer neuron values
@@ -120,7 +122,8 @@ begin
     sum := 0.00;
     for j := 0 to FTinn.nips-1 do
     begin
-      sum := sum + inp[j] * FTinn.w[i * FTinn.nips + j];
+      z := i * FTinn.nips + j;
+      sum := sum + inp[j] * FTinn.w[z];
     end;
     FTinn.h[i] := act(sum + FTinn.b[0]);
   end;
@@ -130,7 +133,8 @@ begin
     sum := 0.00;
     for j := 0 to FTinn.nhid-1 do
     begin
-      sum := sum + FTinn.h[j] * FTinn.x[i * FTinn.nhid + j];
+      z := i * FTinn.nhid + j;
+      sum := sum + FTinn.h[j] * FTinn.x[z];
     end;
     FTinn.o[i] := act(sum + FTinn.b[1]);
   end;
