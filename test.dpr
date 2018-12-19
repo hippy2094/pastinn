@@ -106,7 +106,7 @@ var
   rate, anneal, error: Single;
   data: TTestData;
   NN: TTinyNN;
-  inp, tg, pd: TSingleArray;
+  pd: TSingleArray;
 begin
   Randomize;
   nips := 256;
@@ -124,17 +124,13 @@ begin
     error := 0.00;
     for j := 0 to data.rows -1 do
     begin
-      inp := data.inp[j];
-      tg := data.tg[j];
-      error := error + NN.Train(inp, tg, rate);
+      error := error + NN.Train(data.inp[j],data.tg[j],rate);
     end;
     writeln('error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
     rate := rate * anneal;
   end;
-  inp := data.inp[0];
-  tg := data.tg[0];
-  pd := NN.Predict(inp);
-  NN.PrintToScreen(tg, data.nops);
+  pd := NN.Predict(data.inp[0]);
+  NN.PrintToScreen(data.tg[0], data.nops);
   NN.PrintToScreen(pd, data.nops);
   NN.Free;
 end;
