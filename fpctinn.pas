@@ -158,6 +158,7 @@ begin
   Result := toterr(tg, FTinn.o, FTinn.nops);
 end;
 
+// Prepare the TfpcTinn record for usage
 procedure TTinyNN.Build(nips: Integer; nhid: Integer; nops: Integer);
 begin
   FTinn.nb := 2;
@@ -173,6 +174,7 @@ begin
   wbrand;
 end;
 
+// Save the tinn to file
 procedure TTinyNN.SaveToFile(path: String);
 var
   F: TextFile;
@@ -192,6 +194,7 @@ begin
   CloseFile(F);
 end;
 
+// Load an existing tinn from file
 procedure TTinyNN.LoadFromFile(path: String);
 var
   F: TextFile;
@@ -221,6 +224,7 @@ begin
   CloseFile(F);
 end;
 
+// Dump the contents of the specified array
 procedure TTinyNN.PrintToScreen(arr: TSingleArray; size: Integer);
 var
   i: Integer;
