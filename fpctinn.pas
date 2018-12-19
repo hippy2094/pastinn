@@ -118,7 +118,7 @@ begin
     sum := 0.00;
     for j := 0 to FTinn.nips-1 do
     begin
-      sum += inp[j] * FTinn.w[i * FTinn.nhid + j];
+      sum += inp[j] * FTinn.w[i * FTinn.nips + j];
     end;
     FTinn.h[i] := act(sum + FTinn.b[0]);
   end;
