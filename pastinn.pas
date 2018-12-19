@@ -1,6 +1,8 @@
 unit pastinn;
 
+{$IFDEF FPC}
 {$mode delphi}{$H+}
+{$ENDIF}
 
 interface
 
@@ -209,7 +211,7 @@ begin
   nops := 0;
   // Read header
   Readln(F,s);
-  sscanf(s,'%d %d %d',[@nips, @nhid, @nops]);
+  //sscanf(s,'%d %d %d',[@nips, @nhid, @nops]);
   Build(nips, nhid, nops);
   for i := 0 to FTinn.nb-1 do
   begin

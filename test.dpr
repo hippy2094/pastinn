@@ -1,5 +1,11 @@
 program test;
+
+{$IFDEF FPC}
 {$mode delphi}{$H+}
+{$ELSE}
+{$APPTYPE CONSOLE}
+{$ENDIF}
+
 uses Classes, SysUtils, pastinn;
 
 type
@@ -135,4 +141,5 @@ end;
 
 begin
   main;
+  Readln;
 end.
