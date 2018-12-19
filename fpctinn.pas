@@ -192,7 +192,6 @@ function xtload(path: String): TfpcTinn;
 var
   F: TextFile;
   i, nips, nhid, nops: Integer;
-  //l: String;
   l: Single;
   s: String;
 begin
@@ -208,13 +207,11 @@ begin
   for i := 0 to Result.nb-1 do
   begin
     Readln(F,l);
-    //Result.b[i] := StrToFloat(l);
     Result.b[i] := l;
   end;
   for i := 0 to Result.nw-1 do
   begin
     Readln(F,l);
-    //Result.w[i] := StrToFloat(l);
     Result.w[i] := l;
   end;
   CloseFile(F);
@@ -226,7 +223,7 @@ var
 begin
   for i := 0 to size-1 do
   begin
-    write(arr[i]:1:8,' ');
+    write(arr[i]:1:6,' ');
   end;
   writeln;
 end;
