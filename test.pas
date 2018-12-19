@@ -99,7 +99,7 @@ var
   nips, nops, nhid, iterations, i, j: Integer;
   rate, anneal, error: Single;
   data: TTestData;
-  tinn: TfpcTinn;
+  NN: TTinyNN;
   inp, tg, pd: array of Single;
 begin
   Randomize;
@@ -110,7 +110,8 @@ begin
   anneal := 0.99;
   iterations := 128;
   data := build(nips, nops);
-  tinn := xtbuild(nips, nhid, nops);
+  NN := TTinyNN.Create;
+  NN.Build(nips, nhid, nops);
   for i := 0 to iterations-1 do
   begin
     shuffle(data);
@@ -119,18 +120,17 @@ begin
     begin
       inp := data.inp[j];
       tg := data.tg[j];
-      error += xttrain(tinn, inp, tg, rate);
+      error += NN.Train(inp, tg, rate);
     end;
     writeln('error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
     rate *= anneal;
   end;
-  xtsave(tinn,'data.tinn');
-  //tinn := xtload('data.tinn');
   inp := data.inp[0];
   tg := data.tg[0];
-  pd := xtpredict(tinn, inp);
-  xtprint(tg, data.nops);
-  xtprint(pd, data.nops);
+  pd := NN.Predict(inp);
+  NN.PrintToScreen(tg, data.nops);
+  NN.PrintToScreen(pd, data.nops);
+  NN.Free;
 end;
 
 begin
