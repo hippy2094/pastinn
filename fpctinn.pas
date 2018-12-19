@@ -35,7 +35,7 @@ function xtpredict(var tinn: TFpcTinn; inp: TSingleArray): TSingleArray;
 function xttrain(var tinn: TfpcTinn; inp: TSingleArray; tg: TSingleArray; rate: Single): Single;
 function xtbuild(nips: Integer; nhid: Integer; nops: Integer): TfpcTinn;
 procedure xtsave(tinn: TfpcTinn; path: String);
-function xtload(path: String): TfpcTinn;
+procedure xtload(var tinn: TfpcTinn; path: String);
 procedure xtprint(arr: TSingleArray; size: Integer);
 
 implementation
@@ -188,7 +188,7 @@ begin
   CloseFile(F);
 end;
 
-function xtload(path: String): TfpcTinn;
+procedure xtload(var tinn: TfpcTinn; path: String);
 var
   F: TextFile;
   i, nips, nhid, nops: Integer;
@@ -203,16 +203,16 @@ begin
   // Read header
   Readln(F,s);
   sscanf(s,'%d %d %d',[@nips, @nhid, @nops]);
-  Result := xtbuild(nips, nhid, nops);
-  for i := 0 to Result.nb-1 do
+  tinn := xtbuild(nips, nhid, nops);
+  for i := 0 to tinn.nb-1 do
   begin
     Readln(F,l);
-    Result.b[i] := l;
+    tinn.b[i] := l;
   end;
-  for i := 0 to Result.nw-1 do
+  for i := 0 to tinn.nw-1 do
   begin
     Readln(F,l);
-    Result.w[i] := l;
+    tinn.w[i] := l;
   end;
   CloseFile(F);
 end;
