@@ -1,6 +1,6 @@
 program test;
 {$mode delphi}{$H+}
-uses Classes, SysUtils, fpctinn;
+uses Classes, SysUtils, pastinn;
 
 type
   TArray = array of string;

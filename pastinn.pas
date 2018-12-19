@@ -1,4 +1,4 @@
-unit fpctinn;
+unit pastinn;
 
 {$mode delphi}{$H+}
 
@@ -8,7 +8,7 @@ uses Classes, SysUtils;
 
 type
   TSingleArray = array of Single;
-  TfpcTinn = record
+  TpasTinn = record
     w: TSingleArray; // All the weights    
     x: TSingleArray; // Hidden to output layer weights    
     b: TSingleArray; // Biases    
@@ -22,7 +22,7 @@ type
   end;
   TTinyNN = class(TObject)
     private
-      FTinn: TFpcTinn;
+      FTinn: TpasTinn;
       function err(a: Single; b: Single): Single;
       function pderr(a: Single; b: Single): Single;
       function toterr(tg: TSingleArray; o: TSingleArray; size: Integer): Single;
