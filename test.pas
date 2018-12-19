@@ -5,8 +5,8 @@ uses Classes, SysUtils, pastinn;
 type
   TArray = array of string;
   TTestData = record
-    inp: array of array of Single;
-    tg: array of array of Single;
+    inp: array of TSingleArray;
+    tg: array of TSingleArray;
     nips: Integer;
     nops: Integer;
     rows: Integer;
@@ -63,7 +63,7 @@ end;
 procedure shuffle(var data: TTestData);
 var
   a,b: Integer;
-  ot, it: array of Single;
+  ot, it: TSingleArray;
 begin
   for a := 0 to data.rows-1 do
   begin
@@ -100,7 +100,7 @@ var
   rate, anneal, error: Single;
   data: TTestData;
   NN: TTinyNN;
-  inp, tg, pd: array of Single;
+  inp, tg, pd: TSingleArray;
 begin
   Randomize;
   nips := 256;
@@ -120,10 +120,10 @@ begin
     begin
       inp := data.inp[j];
       tg := data.tg[j];
-      error += NN.Train(inp, tg, rate);
+      error := error + NN.Train(inp, tg, rate);
     end;
     writeln('error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
-    rate *= anneal;
+    rate := rate * anneal;
   end;
   inp := data.inp[0];
   tg := data.tg[0];

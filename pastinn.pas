@@ -94,14 +94,14 @@ begin
     begin
       a := pderr(FTinn.o[j], tg[j]);
       b := pdact(FTinn.o[j]);
-      sum += a * b * FTinn.x[j * FTinn.nhid + i];
+      sum := sum + a * b * FTinn.x[j * FTinn.nhid + i];
       // Correct weights in hidden to output layer
-      FTinn.x[j * FTinn.nhid + i] -= rate * a * b * FTinn.h[i];
+      FTinn.x[j * FTinn.nhid + i] := FTinn.x[j * FTinn.nhid + i] - rate * a * b * FTinn.h[i];
     end;
     // Correct weights in input to hidden layer
     for j := 0 to FTinn.nips-1 do
     begin
-      FTinn.w[i * FTinn.nips + j] -= rate * sum * pdact(FTinn.h[i]) * inp[j];
+      FTinn.w[i * FTinn.nips + j] := FTinn.w[i * FTinn.nips + j] - rate * sum * pdact(FTinn.h[i]) * inp[j];
     end;
   end;
 end;
@@ -118,7 +118,7 @@ begin
     sum := 0.00;
     for j := 0 to FTinn.nips-1 do
     begin
-      sum += inp[j] * FTinn.w[i * FTinn.nips + j];
+      sum := sum + inp[j] * FTinn.w[i * FTinn.nips + j];
     end;
     FTinn.h[i] := act(sum + FTinn.b[0]);
   end;
@@ -128,7 +128,7 @@ begin
     sum := 0.00;
     for j := 0 to FTinn.nhid-1 do
     begin
-      sum += FTinn.h[j] * FTinn.x[i * FTinn.nhid + j];
+      sum := sum + FTinn.h[j] * FTinn.x[i * FTinn.nhid + j];
     end;
     FTinn.o[i] := act(sum + FTinn.b[1]);
   end;
