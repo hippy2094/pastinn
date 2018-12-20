@@ -10,13 +10,14 @@ uses Classes, SysUtils, pastinn;
 
 type
   TTestData = record
-    inp: array of TSingleArray;
-    tg: array of TSingleArray;
-    nips: Integer;
-    nops: Integer;
-    rows: Integer;
+    inp: array of TSingleArray; // 2D floating point array of input
+    tg: array of TSingleArray; // 2D floating point array of target
+    nips: Integer; // Number of inputs to neural network
+    nops: Integer; // Number of outputs to neural network
+    rows: Integer; // Number of rows in file (number of sets for neural network)
   end;
 
+// Setup data record
 function InitData(nips: Integer; nops: Integer; rows: Integer): TTestData;
 begin
   SetLength(Result.inp,rows,nips);
@@ -26,6 +27,7 @@ begin
   Result.rows := rows;
 end;
 
+// Parse one row of inputs and outputs
 procedure parse(var data: TTestData; line: String; row: Integer);
 var
   col, cols: Integer;
@@ -42,6 +44,7 @@ begin
   end;
 end;
 
+// Randomly shuffles the data
 procedure shuffle(var data: TTestData);
 var
   a,b: Integer;
@@ -61,6 +64,7 @@ begin
   end;
 end;
 
+// Parses file from path getting all inputs and outputs for the neural network
 function build(nips: Integer; nops: Integer): TTestData;
 var
   t: TStrings;
@@ -85,15 +89,25 @@ var
   pd: TSingleArray;
 begin
   Randomize;
+  // Number of inputs
   nips := 256;
+  // Number of outputs
   nops := 10;
+  { Learning rate is annealed and thus not constant.
+    It can be fine tuned along with the number of hidden layers.
+    Feel free to modify the anneal rate.
+    The number of iterations can be changed for stronger training. }
   rate := 1.00;
   nhid := 28;
   anneal := 0.99;
   iterations := 128;
+  // Load the test data into the test data record
   data := build(nips, nops);
+  // Create the Tinn
   NN := TTinyNN.Create;
-{  NN.Build(nips, nhid, nops);
+  // Prepare Tinn
+  NN.Build(nips, nhid, nops);
+  // Train that brain!
   for i := 0 to iterations-1 do
   begin
     shuffle(data);
@@ -105,16 +119,31 @@ begin
     writeln('error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
     rate := rate * anneal;
   end;
-  NN.SaveToFile('test.tinn');}
-  shuffle(data);
-  NN.LoadFromFile('test.tinn');
+  { Save to a file
+    This is slightly different to the original Tinn project in that it saves
+    the hidden output layer weights aswell }
+  NN.SaveToFile('test.tinn');
+
+  {shuffle(data);
+  NN.LoadFromFile('test.tinn');}
+
+  { Perform a prediction, ideally a test set would be loaded to make the prediction
+    with, but for testing purposes we are just reusing the training set loaded
+    earlier. One data set is picked at random - as the data was shuffled earlier
+    we can just use the first index of the input and target arrays }
   pd := NN.Predict(data.inp[0]);
+  // Dump out the target
   NN.PrintToScreen(data.tg[0], data.nops);
+  // And finally the prediction
   NN.PrintToScreen(pd, data.nops);
+  { If all is well, the prediction that lines up with the target of 1.000000 has
+    a value of near to 1 itself }
   NN.Free;
 end;
 
 begin
   main;
+  {$IFNDEF FPC}
   Readln;
+  {$ENDIF}
 end.

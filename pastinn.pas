@@ -173,7 +173,6 @@ var
 begin
   for i := 0 to FTinn.nw-1 do FTinn.w[i] := Random - 0.5;
   for i := 0 to FTinn.nb-1 do FTinn.b[i] := Random - 0.5;
-//  for i := 0 to FTinn.nw-1 do FTinn.x[i] := FTinn.w[i];
 end;
 
 // Returns an output prediction given an input
@@ -215,15 +214,19 @@ var
 begin
   AssignFile(F,path);
   Rewrite(F);
+  // Write header
   writeln(F,FTinn.nips,' ',FTinn.nhid,' ',FTinn.nops);
+  // Write biases
   for i := 0 to FTinn.nb-1 do
   begin
     writeln(F,FTinn.b[i]:1:6);
   end;
+  // Write weights
   for i := 0 to FTinn.nw-1 do
   begin
     writeln(F,FTinn.w[i]:1:6);
   end;
+  // Write hidden to output weights
   for i := 0 to FTinn.nw-1 do
   begin
     writeln(F,FTinn.x[i]:1:6);
@@ -251,23 +254,26 @@ begin
   nips := StrToInt(p[0]);
   nhid := StrToInt(p[1]);
   nops := StrToInt(p[2]);
+  // Create initial Tinn
   Build(nips, nhid, nops);
+  // Read biases
   for i := 0 to FTinn.nb-1 do
   begin
     Readln(F,l);
     FTinn.b[i] := l;
   end;
+  // Read weights
   for i := 0 to FTinn.nw-1 do
   begin
     Readln(F,l);
     FTinn.w[i] := l;
   end;
+  // Read hidden to output weights
   for i := 0 to FTinn.nw-1 do
   begin
     Readln(F,l);
     FTinn.x[i] := l;
   end;
-
   CloseFile(F);
 end;
 
