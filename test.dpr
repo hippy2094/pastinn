@@ -129,6 +129,9 @@ begin
     writeln('error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
     rate := rate * anneal;
   end;
+  NN.SaveToFile('test.tinn');
+{  shuffle(data);
+  NN.LoadFromFile('test.tinn');}
   pd := NN.Predict(data.inp[0]);
   NN.PrintToScreen(data.tg[0], data.nops);
   NN.PrintToScreen(pd, data.nops);

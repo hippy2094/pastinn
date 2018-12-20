@@ -147,6 +147,7 @@ var
 begin
   for i := 0 to FTinn.nw-1 do FTinn.w[i] := Random - 0.5;
   for i := 0 to FTinn.nb-1 do FTinn.b[i] := Random - 0.5;
+  for i := 0 to FTinn.nw-1 do FTinn.x[i] := FTinn.w[i];
 end;
 
 // Returns an output prediction given an input
@@ -170,7 +171,7 @@ begin
   FTinn.nb := 2;
   FTinn.nw := nhid * (nips + nops);
   SetLength(FTinn.w,FTinn.nw);
-  SetLength(FTinn.x,(High(FTinn.w) + nhid * nips));
+  SetLength(FTinn.x,FTinn.nw + nhid * nips);
   SetLength(FTinn.b,FTinn.nb);
   SetLength(FTinn.h,nhid);
   SetLength(FTinn.o,nops);
@@ -191,11 +192,11 @@ begin
   writeln(F,FTinn.nips,' ',FTinn.nhid,' ',FTinn.nops);
   for i := 0 to FTinn.nb-1 do
   begin
-    writeln(F,FTinn.b[i]{:1:6});
+    writeln(F,FTinn.b[i]:1:6);
   end;
   for i := 0 to FTinn.nw-1 do
   begin
-    writeln(F,FTinn.w[i]{:1:6});
+    writeln(F,FTinn.w[i]:1:6);
   end;
   CloseFile(F);
 end;
@@ -215,7 +216,7 @@ begin
   nops := 0;
   // Read header
   Readln(F,s);
-  //sscanf(s,'%d %d %d',[@nips, @nhid, @nops]);
+  sscanf(s,'%d %d %d',[@nips, @nhid, @nops]);
   Build(nips, nhid, nops);
   for i := 0 to FTinn.nb-1 do
   begin
