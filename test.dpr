@@ -80,6 +80,29 @@ begin
   t.Free;
 end;
 
+procedure ShowVisual(const data: TTestData);
+var
+  i,j: Integer;
+begin
+  for i := 0 to 15 do
+  begin
+    for j := 0 to 15 do
+    begin
+      write(data.inp[0][i+j]:1:0,' ');
+    end;
+    writeln;
+  end;
+  writeln;
+  for i := 0 to 15 do
+  begin
+    for j := 0 to 15 do
+    begin
+      write(data.inp[1][i+j]:1:0,' ');
+    end;
+    writeln;
+  end;
+end;
+
 procedure main;
 var
   nips, nops, nhid, iterations, i, j: Integer;
@@ -106,7 +129,7 @@ begin
   // Create the Tinn
   NN := TTinyNN.Create;
   // Prepare Tinn
-  NN.Build(nips, nhid, nops);
+(*  NN.Build(nips, nhid, nops);
   // Train that brain!
   for i := 0 to iterations-1 do
   begin
@@ -122,10 +145,10 @@ begin
   { Save to a file
     This is slightly different to the original Tinn project in that it saves
     the hidden output layer weights aswell }
-  NN.SaveToFile('test.tinn');
+  NN.SaveToFile('test.tinn');*)
 
-  {shuffle(data);
-  NN.LoadFromFile('test.tinn');}
+  shuffle(data);
+  NN.LoadFromFile('test.tinn');
 
   { Perform a prediction, ideally a test set would be loaded to make the prediction
     with, but for testing purposes we are just reusing the training set loaded
@@ -139,6 +162,7 @@ begin
   { If all is well, the prediction that lines up with the target of 1.000000 has
     a value of near to 1 itself }
   NN.Free;
+  ShowVisual(data);
 end;
 
 begin
