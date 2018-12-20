@@ -9,7 +9,6 @@ program test;
 uses Classes, SysUtils, pastinn;
 
 type
-  TArray = array of string;
   TTestData = record
     inp: array of TSingleArray;
     tg: array of TSingleArray;
@@ -17,29 +16,6 @@ type
     nops: Integer;
     rows: Integer;
   end;
-
-function explode(cDelimiter,  sValue : string; iCount : integer) : TArray;
-var
-  s : string;
-  i,p : integer;
-begin
-  s := sValue; i := 0;
-  while length(s) > 0 do
-  begin
-    inc(i);
-    SetLength(result, i);
-    p := pos(cDelimiter,s);
-    if ( p > 0 ) and ( ( i < iCount ) OR ( iCount = 0) ) then
-    begin
-      result[i - 1] := copy(s,0,p-1);
-      s := copy(s,p + length(cDelimiter),length(s));
-    end else
-    begin
-      result[i - 1] := s;
-      s :=  '';
-    end;
-  end;
-end;
 
 function InitData(nips: Integer; nops: Integer; rows: Integer): TTestData;
 begin
@@ -117,7 +93,7 @@ begin
   iterations := 128;
   data := build(nips, nops);
   NN := TTinyNN.Create;
-  NN.Build(nips, nhid, nops);
+{  NN.Build(nips, nhid, nops);
   for i := 0 to iterations-1 do
   begin
     shuffle(data);
@@ -129,9 +105,9 @@ begin
     writeln('error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
     rate := rate * anneal;
   end;
-  NN.SaveToFile('test.tinn');
-{  shuffle(data);
-  NN.LoadFromFile('test.tinn');}
+  NN.SaveToFile('test.tinn');}
+  shuffle(data);
+  NN.LoadFromFile('test.tinn');
   pd := NN.Predict(data.inp[0]);
   NN.PrintToScreen(data.tg[0], data.nops);
   NN.PrintToScreen(pd, data.nops);

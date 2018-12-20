@@ -9,6 +9,7 @@ interface
 uses Classes, SysUtils;
 
 type
+  TArray = array of string;
   TSingleArray = array of Single;
   TpasTinn = record
     w: TSingleArray; // All the weights    
@@ -42,7 +43,32 @@ type
       procedure PrintToScreen(arr: TSingleArray; size: Integer);
   end;
 
+function explode(cDelimiter,  sValue : string; iCount : integer) : TArray;
+
 implementation
+
+function explode(cDelimiter,  sValue : string; iCount : integer) : TArray;
+var
+  s : string;
+  i,p : integer;
+begin
+  s := sValue; i := 0;
+  while length(s) > 0 do
+  begin
+    inc(i);
+    SetLength(result, i);
+    p := pos(cDelimiter,s);
+    if ( p > 0 ) and ( ( i < iCount ) OR ( iCount = 0) ) then
+    begin
+      result[i - 1] := copy(s,0,p-1);
+      s := copy(s,p + length(cDelimiter),length(s));
+    end else
+    begin
+      result[i - 1] := s;
+      s :=  '';
+    end;
+  end;
+end;
 
 { TTinyNN }
 
@@ -147,7 +173,7 @@ var
 begin
   for i := 0 to FTinn.nw-1 do FTinn.w[i] := Random - 0.5;
   for i := 0 to FTinn.nb-1 do FTinn.b[i] := Random - 0.5;
-  for i := 0 to FTinn.nw-1 do FTinn.x[i] := FTinn.w[i];
+//  for i := 0 to FTinn.nw-1 do FTinn.x[i] := FTinn.w[i];
 end;
 
 // Returns an output prediction given an input
@@ -171,7 +197,7 @@ begin
   FTinn.nb := 2;
   FTinn.nw := nhid * (nips + nops);
   SetLength(FTinn.w,FTinn.nw);
-  SetLength(FTinn.x,FTinn.nw + nhid * nips);
+  SetLength(FTinn.x,FTinn.nw);
   SetLength(FTinn.b,FTinn.nb);
   SetLength(FTinn.h,nhid);
   SetLength(FTinn.o,nops);
@@ -198,6 +224,10 @@ begin
   begin
     writeln(F,FTinn.w[i]:1:6);
   end;
+  for i := 0 to FTinn.nw-1 do
+  begin
+    writeln(F,FTinn.x[i]:1:6);
+  end;
   CloseFile(F);
 end;
 
@@ -208,6 +238,7 @@ var
   i, nips, nhid, nops: Integer;
   l: Single;
   s: String;
+  p: TArray;
 begin
   AssignFile(F,path);
   Reset(F);
@@ -216,7 +247,10 @@ begin
   nops := 0;
   // Read header
   Readln(F,s);
-  sscanf(s,'%d %d %d',[@nips, @nhid, @nops]);
+  p := explode(' ',s,0);
+  nips := StrToInt(p[0]);
+  nhid := StrToInt(p[1]);
+  nops := StrToInt(p[2]);
   Build(nips, nhid, nops);
   for i := 0 to FTinn.nb-1 do
   begin
@@ -228,6 +262,12 @@ begin
     Readln(F,l);
     FTinn.w[i] := l;
   end;
+  for i := 0 to FTinn.nw-1 do
+  begin
+    Readln(F,l);
+    FTinn.x[i] := l;
+  end;
+
   CloseFile(F);
 end;
 
