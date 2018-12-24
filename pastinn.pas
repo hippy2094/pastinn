@@ -11,36 +11,44 @@ uses Classes, SysUtils;
 type
   TArray = array of string;
   TSingleArray = array of Single;
-  TpasTinn = record
-    w: TSingleArray; // All the weights    
-    x: TSingleArray; // Hidden to output layer weights    
-    b: TSingleArray; // Biases    
-    h: TSingleArray; // Hidden layer    
-    o: TSingleArray; // Output layer    
+  TTinnData = record
+    inp: array of TSingleArray; // 2D floating point array of input
+    tg: array of TSingleArray; // 2D floating point array of target
+  end;
+  TPasTinn = record
+    w: TSingleArray; // All the weights
+    x: TSingleArray; // Hidden to output layer weights
+    b: TSingleArray; // Biases
+    h: TSingleArray; // Hidden layer
+    o: TSingleArray; // Output layer
     nb: Integer; // Number of biases - always two - Tinn only supports a single hidden layer.
     nw: Integer; // Number of weights.
-    nips: Integer; // Number of inputs.    
-    nhid: Integer; // Number of hidden neurons.    
+    nips: Integer; // Number of inputs.
+    nhid: Integer; // Number of hidden neurons.
     nops: Integer; // Number of outputs.
   end;
   TTinyNN = class(TObject)
     private
-      FTinn: TpasTinn;
+      FTinn: TPasTinn;
+      FTinnData: TTinnData;
+      FIndex: Integer;
       function err(const a: Single; const b: Single): Single;
       function pderr(const a: Single; const b: Single): Single;
-      function toterr(const tg: TSingleArray; const o: TSingleArray; const size: Integer): Single;
+      function toterr(index: Integer): Single;
       function act(const a: Single): Single;
       function pdact(const a: Single): Single;
-      procedure bprop(const inp: TSingleArray; const tg: TSingleArray; const rate: Single);
-      procedure fprop(const inp: TSingleArray);
+      procedure bprop(const rate: Single);
+      procedure fprop;
       procedure wbrand;
     public
-      function Train(const inp: TSingleArray; const tg: TSingleArray; const rate: Single): Single;
+      function Train(const rate: Single; index: Integer): Single;
       procedure Build(nips: Integer; nhid: Integer; nops: Integer);
-      function Predict(const inp: TSingleArray): TSingleArray;
+      function Predict(index: Integer): TSingleArray;
       procedure SaveToFile(path: String);
       procedure LoadFromFile(path: String);
       procedure PrintToScreen(arr: TSingleArray; size: Integer);
+      procedure SetData(inp: TTinnData);
+      procedure ShuffleData;
   end;
 
 function explode(cDelimiter,  sValue : string; iCount : integer) : TArray;
@@ -85,14 +93,14 @@ begin
 end;
 
 // Computes total error of target to output.
-function TTinyNN.toterr(const tg: TSingleArray; const o: TSingleArray; const size: Integer): Single;
+function TTinyNN.toterr(index: Integer): Single;
 var
   i: Integer;
 begin
   Result := 0.00;
-  for i := 0 to size-1 do
+  for i := 0 to FTinn.nops -1 do
   begin
-    Result := Result + err(tg[i], o[i]);
+    Result := Result + err(FTinnData.tg[index,i], FTinn.o[i]);
   end;
 end;
 
@@ -109,7 +117,7 @@ begin
 end;
 
 // Performs back propagation
-procedure TTinyNN.bprop(const inp: TSingleArray; const tg: TSingleArray; const rate: Single);
+procedure TTinyNN.bprop(const rate: Single);
 var
   i,j,z: Integer;
   a,b,sum: Single;
@@ -120,7 +128,7 @@ begin
     // Calculate total error change with respect to output
     for j := 0 to FTinn.nops-1 do
     begin
-      a := pderr(FTinn.o[j], tg[j]);
+      a := pderr(FTinn.o[j], FTinnData.tg[FIndex,j]);
       b := pdact(FTinn.o[j]);
       z := j * FTinn.nhid + i;
       sum := sum + a * b * FTinn.x[z];
@@ -131,13 +139,13 @@ begin
     for j := 0 to FTinn.nips-1 do
     begin
       z := i * FTinn.nips + j;
-      FTinn.w[z] := FTinn.w[z] - rate * sum * pdact(FTinn.h[i]) * inp[j];
+      FTinn.w[z] := FTinn.w[z] - rate * sum * pdact(FTinn.h[i]) * FTinnData.inp[FIndex,j];
     end;
   end;
 end;
 
 // Performs forward propagation
-procedure TTinyNN.fprop(const inp: TSingleArray);
+procedure TTinyNN.fprop;
 var
   i,j,z: Integer;
   sum: Single;
@@ -149,7 +157,7 @@ begin
     for j := 0 to FTinn.nips-1 do
     begin
       z := i * FTinn.nips + j;
-      sum := sum + inp[j] * FTinn.w[z];
+      sum := sum + FTinnData.inp[FIndex,j] * FTinn.w[z];
     end;
     FTinn.h[i] := act(sum + FTinn.b[0]);
   end;
@@ -176,18 +184,21 @@ begin
 end;
 
 // Returns an output prediction given an input
-function TTinyNN.Predict(const inp: TSingleArray): TSingleArray;
+function TTinyNN.Predict(index: Integer): TSingleArray;
 begin
-  fprop(inp);
+  FIndex := index;
+  fprop;
   Result := FTinn.o;
 end;
 
 // Trains a tinn with an input and target output with a learning rate. Returns target to output error
-function TTinyNN.Train(const inp: TSingleArray; const tg: TSingleArray; const rate: Single): Single;
+function TTinyNN.Train(const rate: Single; index: Integer): Single;
 begin
-  fprop(inp);
-  bprop(inp, tg, rate);
-  Result := toterr(tg, FTinn.o, FTinn.nops);
+  FIndex := index;
+  fprop;
+  bprop(rate);
+  //Result := toterr(FTinnData.tg[index], FTinn.o, FTinn.nops);
+  Result := toterr(FIndex);
 end;
 
 // Prepare the TfpcTinn record for usage
@@ -204,6 +215,25 @@ begin
   FTinn.nhid := nhid;
   FTinn.nops := nops;
   wbrand;
+end;
+
+procedure TTinyNN.ShuffleData;
+var
+  a,b: Integer;
+  ot, it: TSingleArray;
+begin
+  for a := Low(FTinnData.inp) to High(FTinnData.inp) do
+  begin
+    b := Random(32767) mod High(FTinnData.inp);
+    ot := FTinnData.tg[a];
+    it := FTinnData.inp[a];
+    // Swap output
+    FTinnData.tg[a] := FTinnData.tg[b];
+    FTinnData.tg[b] := ot;
+    // Swap input
+    FTinnData.inp[a] := FTinnData.inp[b];
+    FTinnData.inp[b] := it;
+  end;
 end;
 
 // Save the tinn to file
@@ -275,6 +305,11 @@ begin
     FTinn.x[i] := l;
   end;
   CloseFile(F);
+end;
+
+procedure TTinyNN.SetData(inp: TTinnData);
+begin
+  FTinnData := inp;
 end;
 
 // Dump the contents of the specified array

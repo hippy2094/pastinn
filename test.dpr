@@ -65,13 +65,13 @@ begin
 end;
 
 // Parses file from path getting all inputs and outputs for the neural network
-function build(nips: Integer; nops: Integer): TTestData;
+function build(fn: String; nips: Integer; nops: Integer): TTestData;
 var
   t: TStrings;
   row: Integer;
 begin
   t := TStringList.Create;
-  t.LoadFromFile('semeion.data');
+  t.LoadFromFile(fn);
   Result := InitData(nips, nops, t.Count);
   for row := 0 to t.Count-1 do
   begin
@@ -80,35 +80,13 @@ begin
   t.Free;
 end;
 
-procedure ShowVisual(const data: TTestData);
-var
-  i,j: Integer;
-begin
-  for i := 0 to 15 do
-  begin
-    for j := 0 to 15 do
-    begin
-      write(data.inp[0][i+j]:1:0,' ');
-    end;
-    writeln;
-  end;
-  writeln;
-  for i := 0 to 15 do
-  begin
-    for j := 0 to 15 do
-    begin
-      write(data.inp[1][i+j]:1:0,' ');
-    end;
-    writeln;
-  end;
-end;
-
 procedure main;
 var
   nips, nops, nhid, iterations, i, j: Integer;
   rate, anneal, error: Single;
   data: TTestData;
   NN: TTinyNN;
+  td: TTinnData;
   pd: TSingleArray;
 begin
   Randomize;
@@ -125,36 +103,47 @@ begin
   anneal := 0.99;
   iterations := 128;
   // Load the test data into the test data record
-  data := build(nips, nops);
+  data := build('semeion.data',nips, nops);
   // Create the Tinn
   NN := TTinyNN.Create;
   // Prepare Tinn
-(*  NN.Build(nips, nhid, nops);
+  NN.Build(nips, nhid, nops);
+  td.inp := data.inp;
+  td.tg := data.tg;
+  NN.SetData(td);
   // Train that brain!
   for i := 0 to iterations-1 do
   begin
-    shuffle(data);
+    //shuffle(data);
+    NN.ShuffleData;
     error := 0.00;
     for j := 0 to data.rows -1 do
     begin
-      error := error + NN.Train(data.inp[j],data.tg[j],rate);
+      //error := error + NN.Train(data.inp[j],data.tg[j],rate);
+      error := error + NN.Train(rate, j);
     end;
-    writeln('error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
+    writeln((i+1),' of ',(iterations),' error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
     rate := rate * anneal;
   end;
   { Save to a file
     This is slightly different to the original Tinn project in that it saves
     the hidden output layer weights aswell }
-  NN.SaveToFile('test.tinn');*)
+  NN.SaveToFile('newtest.tinn');
 
-  shuffle(data);
-  NN.LoadFromFile('test.tinn');
+  //NN.LoadFromFile('newtest.tinn');
 
   { Perform a prediction, ideally a test set would be loaded to make the prediction
     with, but for testing purposes we are just reusing the training set loaded
     earlier. One data set is picked at random - as the data was shuffled earlier
     we can just use the first index of the input and target arrays }
-  pd := NN.Predict(data.inp[0]);
+
+{  data := build('test.data',nips,nops);
+  shuffle(data);
+  td.inp := data.inp;
+  td.tg := data.tg;
+  NN.SetData(td);}
+
+  pd := NN.Predict(0);
   // Dump out the target
   NN.PrintToScreen(data.tg[0], data.nops);
   // And finally the prediction
@@ -162,7 +151,6 @@ begin
   { If all is well, the prediction that lines up with the target of 1.000000 has
     a value of near to 1 itself }
   NN.Free;
-  ShowVisual(data);
 end;
 
 begin
