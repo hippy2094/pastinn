@@ -8,86 +8,42 @@ program test;
 
 uses Classes, SysUtils, pastinn;
 
-type
-  TTestData = record
-    inp: array of TSingleArray; // 2D floating point array of input
-    tg: array of TSingleArray; // 2D floating point array of target
-    nips: Integer; // Number of inputs to neural network
-    nops: Integer; // Number of outputs to neural network
-    rows: Integer; // Number of rows in file (number of sets for neural network)
-  end;
-
-// Setup data record
-function InitData(nips: Integer; nops: Integer; rows: Integer): TTestData;
-begin
-  SetLength(Result.inp,rows,nips);
-  SetLength(Result.tg,rows,nops);
-  Result.nips := nips;
-  Result.nops := nops;
-  Result.rows := rows;
-end;
-
-// Parse one row of inputs and outputs
-procedure parse(var data: TTestData; line: String; row: Integer);
+procedure BuildData(fn: String; nips: Integer; nops: Integer; var data: TTinnData);
 var
-  col, cols: Integer;
+  row, rows, col, cols: Integer;
   val: Single;
   lparts: TArray;
+  fi: TStrings;
 begin
-  cols := data.nips + data.nops;
-  lparts := explode(' ',line,0);
-  for col := 0 to cols-1 do
-  begin
-    val := StrToFloat(lparts[col]);
-    if col < data.nips then data.inp[row,col] := val
-    else data.tg[row,col - data.nips] := val;
-  end;
-end;
+  fi := TStringList.Create;
+  fi.LoadFromFile(fn);
+  cols := nips + nops;
+  rows := fi.Count -1;
 
-// Randomly shuffles the data
-procedure shuffle(var data: TTestData);
-var
-  a,b: Integer;
-  ot, it: TSingleArray;
-begin
-  for a := 0 to data.rows-1 do
+  SetLength(data.inp,rows+1,nips);
+  SetLength(data.tg,rows+1,nops);
+  for row := 0 to fi.Count -1  do
   begin
-    b := Random(32767) mod data.rows;
-    ot := data.tg[a];
-    it := data.inp[a];
-    // Swap output
-    data.tg[a] := data.tg[b];
-    data.tg[b] := ot;
-    // Swap input
-    data.inp[a] := data.inp[b];
-    data.inp[b] := it;
+    lparts := explode(' ',fi[row],0);
+    for col := 0 to cols-1 do
+    begin
+      val := StrToFloat(lparts[col]);
+      if col < nips then data.inp[row,col] := val
+      else data.tg[row,col - nips] := val;
+    end;
   end;
-end;
+  fi.Free;
 
-// Parses file from path getting all inputs and outputs for the neural network
-function build(fn: String; nips: Integer; nops: Integer): TTestData;
-var
-  t: TStrings;
-  row: Integer;
-begin
-  t := TStringList.Create;
-  t.LoadFromFile(fn);
-  Result := InitData(nips, nops, t.Count);
-  for row := 0 to t.Count-1 do
-  begin
-    parse(Result,t[row],row);
-  end;
-  t.Free;
 end;
 
 procedure main;
 var
   nips, nops, nhid, iterations, i, j: Integer;
   rate, anneal, error: Single;
-  data: TTestData;
   NN: TTinyNN;
-  td: TTinnData;
+  data: TTinnData;
   pd: TSingleArray;
+  rows: Integer;
 begin
   Randomize;
   // Number of inputs
@@ -102,27 +58,26 @@ begin
   nhid := 28;
   anneal := 0.99;
   iterations := 128;
+
   // Load the test data into the test data record
-  data := build('semeion.data',nips, nops);
+  BuildData('semeion.data',nips,nops,data);
+  rows := High(data.inp);
+
   // Create the Tinn
   NN := TTinyNN.Create;
   // Prepare Tinn
   NN.Build(nips, nhid, nops);
-  td.inp := data.inp;
-  td.tg := data.tg;
-  NN.SetData(td);
+  NN.SetData(data);
   // Train that brain!
   for i := 0 to iterations-1 do
   begin
-    //shuffle(data);
     NN.ShuffleData;
     error := 0.00;
-    for j := 0 to data.rows -1 do
+    for j := 0 to rows -1 do
     begin
-      //error := error + NN.Train(data.inp[j],data.tg[j],rate);
       error := error + NN.Train(rate, j);
     end;
-    writeln((i+1),' of ',(iterations),' error ',(error/data.rows):1:10, ' :: learning rate ',rate:1:10);
+    writeln((i+1),' of ',(iterations),' error ',(error/rows):1:10, ' :: learning rate ',rate:1:10);
     rate := rate * anneal;
   end;
   { Save to a file
@@ -130,24 +85,21 @@ begin
     the hidden output layer weights aswell }
   NN.SaveToFile('newtest.tinn');
 
-  //NN.LoadFromFile('newtest.tinn');
+  NN.Free;
+  NN := TTinyNN.Create;
+
+  NN.LoadFromFile('newtest.tinn');
+  NN.SetData(data);
 
   { Perform a prediction, ideally a test set would be loaded to make the prediction
     with, but for testing purposes we are just reusing the training set loaded
     earlier. One data set is picked at random - as the data was shuffled earlier
     we can just use the first index of the input and target arrays }
-
-{  data := build('test.data',nips,nops);
-  shuffle(data);
-  td.inp := data.inp;
-  td.tg := data.tg;
-  NN.SetData(td);}
-
   pd := NN.Predict(0);
   // Dump out the target
-  NN.PrintToScreen(data.tg[0], data.nops);
+  NN.PrintToScreen(data.tg[0], nops);
   // And finally the prediction
-  NN.PrintToScreen(pd, data.nops);
+  NN.PrintToScreen(pd, nops);
   { If all is well, the prediction that lines up with the target of 1.000000 has
     a value of near to 1 itself }
   NN.Free;
