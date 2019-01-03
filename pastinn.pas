@@ -1,4 +1,8 @@
 unit pastinn;
+{< pastinn (Pascal Tiny Neural Network) @br @br
+   (c) 2018 Matthew Hipkin <https://www.matthewhipkin.co.uk> @author(Matthew Hipkin (www.matthewhipkin.co.uk)) @br @br
+   A Pascal port of tinn a tiny neural network library for C https://github.com/glouw/tinn
+}
 
 {$IFDEF FPC}
 {$mode delphi}{$H+}
@@ -9,48 +13,83 @@ interface
 uses Classes, SysUtils;
 
 type
+  { Simple string array type }
   TArray = array of string;
+  { Simple 2d array of Single type }
   TSingleArray = array of Single;
+  { Data record used by the neural network }
   TTinnData = record
-    inp: array of TSingleArray; // 2D floating point array of input
-    tg: array of TSingleArray; // 2D floating point array of target
+    { 2D floating point array of input }
+    inp: array of TSingleArray;
+    { 2D floating point array of target }
+    tg: array of TSingleArray;
   end;
+  { The neural network record }
   TPasTinn = record
-    w: TSingleArray; // All the weights
-    x: TSingleArray; // Hidden to output layer weights
-    b: TSingleArray; // Biases
-    h: TSingleArray; // Hidden layer
-    o: TSingleArray; // Output layer
-    nb: Integer; // Number of biases - always two - Tinn only supports a single hidden layer.
-    nw: Integer; // Number of weights.
-    nips: Integer; // Number of inputs.
-    nhid: Integer; // Number of hidden neurons.
-    nops: Integer; // Number of outputs.
+    { All the weights }
+    w: TSingleArray;
+    { Hidden to output layer weights }
+    x: TSingleArray;
+    { Biases }
+    b: TSingleArray;
+    { Hidden layer }
+    h: TSingleArray;
+    { Output layer }
+    o: TSingleArray;
+    { Number of biases - always two - Tinn only supports a single hidden layer }
+    nb: Integer;
+    { Number of weights }
+    nw: Integer;
+    { Number of inputs }
+    nips: Integer;
+    { Number of hidden neurons }
+    nhid: Integer;
+    { Number of outputs }
+    nops: Integer;
   end;
+  { Tiny neural network main class }
   TTinyNN = class(TObject)
     private
       FTinn: TPasTinn;
       FTinnData: TTinnData;
       FIndex: Integer;
+    protected
+      { Calculates error }
       function err(const a: Single; const b: Single): Single;
+      { Calculates partial derivative of error function }
       function pderr(const a: Single; const b: Single): Single;
+      { Calculates total error of output target }
       function toterr(index: Integer): Single;
+      { Activation function }
       function act(const a: Single): Single;
+      { Returns partial derivative of activation function }
       function pdact(const a: Single): Single;
+      { Performs back propagation }
       procedure bprop(const rate: Single);
+      { Performs forward propagation }
       procedure fprop;
+      { Randomize weights and baises }
       procedure wbrand;
     public
+      { Trains a tinn with an input and target output with a learning rate. Returns target to output error }
       function Train(const rate: Single; index: Integer): Single;
+      { Prepare the TPasTinn record for usage }
       procedure Build(nips: Integer; nhid: Integer; nops: Integer);
+      { Returns an output prediction on given input }
       function Predict(index: Integer): TSingleArray;
+      { Save neural network to file }
       procedure SaveToFile(path: String);
+      { Load neural network from file }
       procedure LoadFromFile(path: String);
+      { Dump contents of array to screen }
       procedure PrintToScreen(arr: TSingleArray; size: Integer);
+      { Set input data }
       procedure SetData(inp: TTinnData);
+      { Shuffle input data }
       procedure ShuffleData;
   end;
 
+{ Split string by a delimiter }
 function explode(cDelimiter,  sValue : string; iCount : integer) : TArray;
 
 implementation
