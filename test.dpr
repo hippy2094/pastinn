@@ -127,7 +127,13 @@ begin
 end;
 
 begin
-  main;
+  if FileExists('semeion.data') then main
+  else
+  begin
+    writeln('Cannot find semeion.data!');
+    writeln('This demo requires the semeion dataset, you can download it from:');
+    writeln('http://archive.ics.uci.edu/ml/machine-learning-databases/semeion/semeion.data');
+  end;
   {$IFNDEF FPC}
   Readln;
   {$ENDIF}
