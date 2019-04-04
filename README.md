@@ -10,6 +10,7 @@ This is a Pascal port of [tinn](https://github.com/glouw/tinn) (the tiny neural 
 
 ## More
 Released under MIT license
+
 Class Documentation can be found at https://www.matthewhipkin.co.uk/pastinn/
 
 TODO: Add more text later
